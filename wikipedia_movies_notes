@@ -1,0 +1,133 @@
+1) import the dependencies
+2) to make it easier when you want to open a file in the directory later, define a variable 
+3) import the wikipedia JSON file, define a variable file_dir for the directory that's holding the data. 
+    - If you want to open the file, can use the f string in stead of typing the full directory 
+    name: f'{file_dir}filename'
+    - load the JSON into a list of dictionaries using the load() method
+    - Using the with statement, open the Wikipedia JSON file to be read into the variable 
+    file, and use json.load() to save the data to a new variable.
+4) wiki_movies_raw is now a list of dictionaries, there were 7,311 records pulled in
+5) check that the data didn't come out garbled. first 5
+6) check last 5
+7) check middle
+8) Since the Kaggle data is already in flat-file formats, we'll just pull them into Pandas DataFrames directly with the following code.
+9) check the data
+10) create a dataframe with the raw data and check results
+11) check it
+12) there are a lot of columns, 193 to be exact, need to convert wiki_movies_df.columns to a list to see all of the columns
+13) There is data in this that we don't need, filter the data using a conditional filter expression to filter for only movies with a director and IMDb link
+14) Data is much cleaner now with 78 columns and the number of movies cut down to 7,080
+15) There are a lot of languages but lets focus on the fact that there is the "no.of episodes" which indicates that there are tv shows included. need to filter these out as well by adding a filter to our list comprehension (8.3.3) number now 7074
+    - Because the movies are dicts and we want to make nondestructive edits, make a copy of 
+    the incoming movie. To make a copy of movies, we'll use the dict() constructor
+    -When we pass movie as a parameter to the dict() constructor, it reserves a new space in 
+    memory and copies all of the info in movie to that new space.
+    - Inside of the function, we can create a new local variable called movie and assign it 
+    the new copy of the parameter movie.
+    - This way, inside of the clean_movie() function, movie will refer to the local copy. Any 
+    changes we make inside clean_movie() will now only affect the copy, so if we make a 
+    mistake, we still have the original, untouched movie to reference. Finish our skeleton of 
+    the clean_movie function, return the movie variable
+16) Now lets look at the languages, first one that is seen is Arabic. how many movies have a value for "arabic"? result = 2 rows x 75 columns
+17) display the columns in alphabetical order to determine which columns hold alternate titles for skill drill
+    Here is a complete list of columns that hold alternate title data: Also known as, Arabic, 
+    Cantonese, Chinese, French, Hangul, Hebrew, Hepburn, Japanese, Literally,  Mandarin, 
+    McCune–Reischauer, Original title, Polish,  Revised Romanization, Romanized, Russian, 
+    Simplified, Traditional, Yiddish
+18) handle the alternative titles
+19) make a list of cleaned movies with a list comprehension
+20) set wiki_movies_df to be the dataframe created from clean_movies, and print out a list of the columns
+21) Here we will extract the IMDb ID using Regex.
+    - we can drop and duplicate titles by using the drop_duplicates() method.
+    - to specify we only want to consider the IMDb ID, use the subset argument, and set 
+    inplace equal to true so that the operation is performed on the selected dataframe.
+    Otherwise, the operation would return an edited dataframe that would need to be saved
+    to a new variable. 
+22) We want to remove null values, one way to get the count of null values for each colum,n is to use a list comprehension. Can also use a for loop and a print statement
+23) As we can see, most of the columns have more than 6,000 null values. Let's make a list of columns that have less than 90% null values and use those to trim down out data set.
+    - update the list comprehension from before (see 8.3.7 bottom)
+24) look at the data types to determine which columns need to be converterd. As we can see, box office, budget, and running time should be numeric and release date should be a date object. Box office and budget amounts aren't written in a consisten style, so we're gonna need a powerful way to parse the data correctly. 
+25) start with the box office, which will give us code that we can reuse and tweak for the budget data since they're both currencies. Only helpful to look at rows where box office data is defines, so make a data series that drops missing values 
+    - having to create a new function every time we want to use the map() method is 
+    cumbersome and interrupts the readability of the code. Want a stripped-down, one-line 
+    way of writing functions. Also do not need to use it outside of the map() call, so we 
+    don't need to give it a name
+    - remember this is what lambda functions are made for. Instead of creating a new 
+    function with a block of code and the def keyword, we can creat an anonymous lambda 
+    function right inside the map() call. Remember lambda functions don't use names and 
+    automatically return a variable. syntax as follows:
+        lambda arguments : expression
+    - There is a lambda equivilant of the is_not_a_string() which is:
+        lambda x: type(x) !=str
+26) Update out map() call to use the lambda function directly instead of using is_not_a_string()
+27) from the output we can see that there are a few data points that are stored as lists. There is a join() string method that concatenates list items into one string. Because join() method belongs to string objects, we need to make a separator string and then call the join() mehtod on it.
+     - we'll use a simple space as our joining character and apply the join() function 
+     only when our data points are lists
+** Below is from 8.3.10 *****
+28) For the first form, our pattern match string will include six elements in the following order:
+    1. A dollar sign
+    2. An arbitrary (but not zero) number of digits
+    3. An optional decimal point
+    4. An arbitrary (but possibly zero) number of more digits
+    5. A space (maybe more than one)
+    6. The word "million" or "billion"
+** see 8.3.10 for step by step
+29) Now count up how many box office values match our first form. We'll use the str.contains() method on box_office. To ignore whether letters are uppercase or lowercase, add an argument called flags, and set it equal to re.IGNORECASE. In case the data is not a string, we'll add the na=False argument to parse the non-string data to False.
+29) Create the second form. The pattern match string will include:
+    1. A dollar sign
+    2. A group of one to three digits
+    3. At least one group starting with a comma and followed by exactly three digits
+** see 8.3.10 again for full explinations 
+30) Now, most of the box office values aare described by either of the two forms. We still want to see which values aren't described by either. To be safe, we should see if any box office values are described by both.
+    - To make the code easier to understand, we'll create two Boolean Series called 
+    matches_form_one and matches_form_two, and then select the box office vlaues that don;t 
+    match either. 
+    - First, create the two boolean series
+    - using the python logical keywords "not", "and" and "or. Try the code to see which 
+    values in box_office don't match either form
+    - Using this code when extracting and converting with give a ValueError: 
+        box_office[(not matches_form_one) and (not matches_form_two)]
+        - Be sure to use the correct code
+31) We can fix our pattern matches to capture more values by addressing these issues:
+    1. Some values have spaces in between the dollar sign and the number
+    2. Some values use a period as a thousans separator, not a comma
+    3. Some values are given as a range
+    4. Million is sometimes mispelled 'millon.'
+*see module for step by step
+32) Lets reprocess the data budget just like it was done for the box office data. 
+    - create a budget variable
+33) convert and lists to strings
+34) then remove any values between a dolalr sign and hyphen (for budgets given in ranges)
+35) Parse the budget data
+    - note: there is another issue in the budget data: citation references (the numbers in 
+    square brackets)
+36) Remove the citation references
+    - there will be 30 budgets remaining and this is less than 1% of the total, not worth 
+    the time it would take to parsse the rest
+37) Everything is now ready to parse the budget values. We can copy the line of code we used to parse the box office values, changing "box_office" to "budget".
+38) Drop the original budget column
+39) Begin by creating a variable. Parse the release date with a similar pattern to parsing box office and budget, but with different forms. First, make a variable that holds the non-null calues of Release date in the DataFrame, converting lists to strings.
+-- The forms we'll be parsing are:
+    1) Full month name, one- to two-digit day, four-digit year (i.e., January 1, 2000)
+    2) Four-digit year, two-digit month, two-digit day, with any separator (ie 2000-01-01)
+    3) Full month name, four-digit year (i.e., January 2000)
+    4) Four-digit year
+  ** for longer regex, you may want to consider using the re.VERBOSE option, which allows 
+  you to comment on each component of a regex. 
+40) Extract the dates
+41) won't be creating our own function to parse the dates, use the to_datetime() method in Pandas. Since there are different date formats, seet the infer_datetime_format to option True. The date formats we've target
+42) Beginning parsing the running time data. First, make a variable that holds the non-null values of Release date in the DataFrame, converting lists to strings.
+43) It looks like most of the entries just look like "100 minutes." Let's see how many running times look exactly like that by using string boundaries.
+44) The above code returns 6,528 entries. Let's get a sense of what the other 366 entries look like.
+45) Let's make this more general by only marking the beginning of the string, and accepting other abbreviations of "minutes" by only searching up to the letter "m."
+46) That accounts for 6,877 entries. The remaining 17 follow.
+47) We can capture some more of these by relaxing the condition that the pattern has to start with at the beginning of the string, but the entries with hours and minutes listed separately will give erroneous data. remove the "^" carrot, which in the original expression marks the beginning of the string.
+--- We can match all of the hour + minute patterns with one regular expression pattern.Our pattern follows:
+    1) Start with one or more digits
+    2) Have an optional space after the digit and before the letter "h"
+    3) Capture all the possible abbreviations of "hour(s)." To do this, we'll make every 
+    letter in "hours" optional except the "h".
+    4) Have an optional space after the "hours" marker
+    5) Have an optional number of digits for minutes
+41) Here we only want to extract digits, adn we want to allow for both possible patterns. Therefore, we'll add capture groups around the "\d" instances as well as add an alternating character. 
+42) Sadly this new dataframe is all string and will need to be converted into numeric values. Might have captures empty strings, use the "to_numeric()" method and set the error argument to 'coerce'. Coercing the errors will turn the empty strings into NaN, then we can use the fillna() to change all the NaNs to zeros
